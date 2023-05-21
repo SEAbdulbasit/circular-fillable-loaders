@@ -11,26 +11,26 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Canvas
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.ImageBitmapConfig
-import androidx.compose.ui.graphics.ImageShader
 import androidx.compose.ui.graphics.Paint
-import androidx.compose.ui.graphics.Shader
-import androidx.compose.ui.graphics.TileMode
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.PI
 import kotlin.math.sin
@@ -42,7 +42,7 @@ fun WavesLoadingIndicator2(modifier: Modifier, color: Color, progress: Float) {
         val constraintsHeight = maxHeight
         val density = LocalDensity.current
 
-        val wavesShader by produceState<Shader?>(
+        val wavesShader by produceState<Path?>(
             initialValue = null,
             constraintsHeight,
             constraintsWidth,
@@ -50,10 +50,9 @@ fun WavesLoadingIndicator2(modifier: Modifier, color: Color, progress: Float) {
             density
         ) {
             value = withContext(Dispatchers.Default) {
-                createWavesShader(
+                createWavesPath(
                     width = with(density) { constraintsWidth.roundToPx() },
                     height = with(density) { constraintsHeight.roundToPx() },
-                    color = color
                 )
             }
         }
@@ -67,37 +66,71 @@ fun WavesLoadingIndicator2(modifier: Modifier, color: Color, progress: Float) {
         )
 
         if (animatedProgress > 0f && wavesShader != null) {
-            WavesOnCanvas(shader = wavesShader!!, progress = animatedProgress.coerceAtMost(0.99f))
+            //WavesOnCanvas(wavePath = wavesShader!!, progress = animatedProgress.coerceAtMost(0.99f))
+            //AnimatedPath(modifier = Modifier.fillMaxSize(), path = wavesShader!!, amplitude = 0.0f,)
+            AnimatedPath(
+                modifier = Modifier.fillMaxSize(),
+                path = wavesShader!!,
+                amplitude = 10f,
+                durationMillis = 2000
+            )
+
         }
     }
 }
 
+private fun calculateWaveOffset(animatedProgress: Float, canvasHeight: Float): Float {
+    val amplitude = 50f // Adjust the wave amplitude as needed
+    val frequency = 2f // Adjust the wave frequency as needed
+    val progressOffset = (animatedProgress * 2 * PI).toFloat()
+    return amplitude * sin(frequency * progressOffset) + (canvasHeight / 2f)
+}
 
 @Composable
-private fun WavesOnCanvas(shader: Shader, progress: Float) {
-    // val matrix = remember { Matrix() }
+fun AnimatedPath(modifier: Modifier = Modifier, path: Path, amplitude: Float, durationMillis: Int) {
+    var animationProgress by remember { mutableStateOf(0f) }
+    val transition = rememberInfiniteTransition()
+    val animatedProgress by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        )
+    )
 
-    val paint = remember(shader) {
-        Paint().apply {
-            isAntiAlias = true
-            this.shader = shader
+    LaunchedEffect(animatedProgress) {
+        launch {
+            animationProgress = animatedProgress
         }
     }
 
-    val wavesTransition = rememberWavesTransition()
-    // val amplitudeRatio by wavesTransition.amplitudeRatio
-    //val waveShiftRatio by wavesTransition.waveShiftRatio
-
-    Canvas(modifier = Modifier.fillMaxSize()) {
-        drawIntoCanvas {
-            val height = size.height
-            val width = size.width
-            //  matrix.scale(1f, amplitudeRatio / AmplitudeRatio)
-            // matrix.translate(waveShiftRatio * width, (WaterLevelRatio - progress) * height)
-            //shader.setLocalMatrix(matrix)
-            it.drawRect(0f, 0f, width, height, paint)
-        }
+    Canvas(modifier = modifier.fillMaxSize()) {
+        drawPathWithOffset(
+            path, size,
+            calculateWaveOffset(animatedProgress, amplitude).toDouble()
+        )
     }
+}
+
+private fun DrawScope.drawPathWithOffset(path: Path, size: Size, offsetY: Double) {
+    val centerX = size.width / 2f
+    val centerY = size.height / 2f + offsetY
+
+    val paint = Paint().apply {
+        color = Color.Blue // Set the desired color for the path
+        style = androidx.compose.ui.graphics.PaintingStyle.Stroke
+        strokeWidth = 2f
+    }
+
+
+    translate(0f, offsetY.toFloat()) {
+        drawPath(
+            color = (Color.Red),
+            path = path,
+        )
+    }
+
 }
 
 private class WavesTransition(
@@ -138,45 +171,30 @@ private fun rememberWavesTransition(): WavesTransition {
 }
 
 @Stable
-private fun createWavesShader(width: Int, height: Int, color: Color): Shader {
+private fun createWavesPath(width: Int, height: Int): Path {
     val angularFrequency = 2f * PI / width
     val amplitude = height * AmplitudeRatio
     val waterLevel = height * WaterLevelRatio
 
-    val bitmap = ImageBitmap(width = width, height = height, ImageBitmapConfig.Argb8888)
-    val canvas = Canvas(bitmap)
+    val wavePath = Path().apply {
+        val startX = 0f
+        val startY = waterLevel
 
-    val wavePaint = Paint().apply {
-        strokeWidth = 2f
-        isAntiAlias = true
+        moveTo(startX, startY)
+
+        for (x in 0..width) {
+            val wx = x * angularFrequency
+            val y = waterLevel + amplitude * sin(wx).toFloat()
+            lineTo(x.toFloat(), y)
+        }
+        lineTo(width.toFloat(), height.toFloat())
+        lineTo(startX, height.toFloat())
+        close()
     }
 
-    val waveY = FloatArray(size = width + 1)
-
-    wavePaint.color = color.copy(alpha = 0.3f)
-    for (beginX in 0..width) {
-        val wx = beginX * angularFrequency
-        val beginY = waterLevel + amplitude * sin(wx).toFloat()
-        canvas.drawLine(
-            p1 = Offset(x = beginX.toFloat(), y = beginY),
-            p2 = Offset(x = beginX.toFloat(), y = (height + 1).toFloat()),
-            paint = wavePaint
-        )
-        waveY[beginX] = beginY
-    }
-
-    wavePaint.color = color
-    val endX = width + 1
-    val waveToShift = width / 4
-    for (beginX in 0..width) {
-        canvas.drawLine(
-            p1 = Offset(x = beginX.toFloat(), y = waveY[(beginX + waveToShift).rem(endX)]),
-            p2 = Offset(x = beginX.toFloat(), y = (height + 1).toFloat()),
-            paint = wavePaint
-        )
-    }
-    return ImageShader(image = bitmap, tileModeX = TileMode.Repeated, tileModeY = TileMode.Clamp)
+    return wavePath
 }
+
 
 private const val AmplitudeRatio = 0.02f
 private const val WaterLevelRatio = 0.5f
