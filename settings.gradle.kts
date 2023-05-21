@@ -1,4 +1,4 @@
-rootProject.name = "MyApplication"
+rootProject.name = "Circular Fillable Loaders"
 
 include(":androidApp")
 include(":shared")
