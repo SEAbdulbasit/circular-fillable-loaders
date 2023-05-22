@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,11 +20,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -33,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.PI
+import kotlin.math.cos
 import kotlin.math.sin
 
 @Composable
@@ -66,13 +63,11 @@ fun WavesLoadingIndicator2(modifier: Modifier, color: Color, progress: Float) {
         )
 
         if (animatedProgress > 0f && wavesShader != null) {
-            //WavesOnCanvas(wavePath = wavesShader!!, progress = animatedProgress.coerceAtMost(0.99f))
-            //AnimatedPath(modifier = Modifier.fillMaxSize(), path = wavesShader!!, amplitude = 0.0f,)
             AnimatedPath(
                 modifier = Modifier.fillMaxSize(),
                 path = wavesShader!!,
                 amplitude = 10f,
-                durationMillis = 2000
+                durationMillis = 3000
             )
 
         }
@@ -80,7 +75,14 @@ fun WavesLoadingIndicator2(modifier: Modifier, color: Color, progress: Float) {
 }
 
 private fun calculateWaveOffset(animatedProgress: Float, canvasHeight: Float): Float {
-    val amplitude = 50f // Adjust the wave amplitude as needed
+    val amplitude = 2f // Adjust the wave amplitude as needed
+    val frequency = 2f // Adjust the wave frequency as needed
+    val progressOffset = (animatedProgress * 2 * PI).toFloat()
+    return amplitude * cos(frequency * progressOffset) + (canvasHeight / 2f)
+}
+
+private fun calculateWaveXOffset(animatedProgress: Float, canvasHeight: Float): Float {
+    val amplitude = 2f // Adjust the wave amplitude as needed
     val frequency = 2f // Adjust the wave frequency as needed
     val progressOffset = (animatedProgress * 2 * PI).toFloat()
     return amplitude * sin(frequency * progressOffset) + (canvasHeight / 2f)
@@ -106,31 +108,15 @@ fun AnimatedPath(modifier: Modifier = Modifier, path: Path, amplitude: Float, du
     }
 
     Canvas(modifier = modifier.fillMaxSize()) {
-        drawPathWithOffset(
-            path, size,
-            calculateWaveOffset(animatedProgress, amplitude).toDouble()
-        )
+        translate(
+            0f, calculateWaveOffset(animatedProgress, amplitude).toDouble().toFloat()
+        ) {
+            drawPath(
+                color = (Color.Red),
+                path = path,
+            )
+        }
     }
-}
-
-private fun DrawScope.drawPathWithOffset(path: Path, size: Size, offsetY: Double) {
-    val centerX = size.width / 2f
-    val centerY = size.height / 2f + offsetY
-
-    val paint = Paint().apply {
-        color = Color.Blue // Set the desired color for the path
-        style = androidx.compose.ui.graphics.PaintingStyle.Stroke
-        strokeWidth = 2f
-    }
-
-
-    translate(0f, offsetY.toFloat()) {
-        drawPath(
-            color = (Color.Red),
-            path = path,
-        )
-    }
-
 }
 
 private class WavesTransition(
@@ -170,7 +156,6 @@ private fun rememberWavesTransition(): WavesTransition {
     }
 }
 
-@Stable
 private fun createWavesPath(width: Int, height: Int): Path {
     val angularFrequency = 2f * PI / width
     val amplitude = height * AmplitudeRatio
