@@ -51,7 +51,7 @@ fun CircularFillableLoaders(
                 modifier = modifier.size(100.dp).align(Alignment.Center)
             )
 
-            WavesLoadingIndicator2(modifier = modifier, color = Color.DarkGray, 0.9f)
+            WavesLoadingIndicator2(modifier = modifier, color = Color.DarkGray, 1f)
         }
     }
 }
