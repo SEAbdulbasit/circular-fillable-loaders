@@ -6,26 +6,30 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.unit.dp
 import kotlin.math.PI
 import kotlin.math.sin
 
 @Composable
-fun WavesLoadingIndicator2(modifier: Modifier, color: Color, progress: Float) {
-    BoxWithConstraints(modifier = modifier.offset(y = 16.dp), contentAlignment = Alignment.Center) {
-        AnimatedPathTranslation(color, progress)
+fun WavesLoadingIndicator(
+    modifier: Modifier,
+    color: Color,
+    progress: MutableState<Int>,
+    wavesAmplitude: Float
+) {
+    BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.Center) {
+        AnimatedPathTranslation(color, progress, wavesAmplitude)
     }
 }
 
 @Composable
-fun AnimatedPathTranslation(color: Color, progress: Float) {
+fun AnimatedPathTranslation(color: Color, progress: MutableState<Int>, wavesAmplitude: Float) {
     val transition = rememberInfiniteTransition()
 
     val waveShiftRatio = transition.animateFloat(
@@ -36,11 +40,16 @@ fun AnimatedPathTranslation(color: Color, progress: Float) {
         )
     )
 
+
     Canvas(modifier = Modifier.fillMaxSize()) {
         val canvasWidth = size.width
         val canvasHeight = size.height
         val wavePath = createPath(
-            canvasWidth.toInt(), canvasHeight.toInt(), waveShiftRatio.value, progress
+            canvasWidth.toInt(),
+            canvasHeight.toInt(),
+            waveShiftRatio.value,
+            progress.value,
+            wavesAmplitude
         )
         drawPath(
             color = (color.copy(alpha = 0.5f)),
@@ -59,11 +68,12 @@ private fun createPath(
     width: Int,
     height: Int,
     waveShiftRatio: Float,
-    progress: Float,
+    progress: Int,
+    wavesAmplitude: Float,
 ): List<Path> {
     val angularFrequency = 2f * PI / width
-    val amplitude = height * AmplitudeRatio
-    val waterLevel = height * WaterLevelRatio * progress
+    val amplitude = height * wavesAmplitude
+    val waterLevel = (height / progress * 10).toFloat()
 
     val originalPath = Path().apply {
         val startX = 0f
@@ -82,9 +92,8 @@ private fun createPath(
 
     val path2 = Path().apply {
         val startX = 0f
-        val startY = waterLevel
 
-        moveTo(startX, startY)
+        moveTo(startX, waterLevel)
 
         for (x in 0..width) {
             val wx = x * angularFrequency + 0.8
@@ -99,7 +108,4 @@ private fun createPath(
     return listOf(originalPath, path2)
 }
 
-
-private const val AmplitudeRatio = 0.03f
-private const val WaterLevelRatio = 0.5f
 private const val WavesShiftAnimationDurationInMillis = 2500

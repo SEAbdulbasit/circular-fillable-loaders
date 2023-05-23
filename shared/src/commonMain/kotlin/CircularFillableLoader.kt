@@ -5,53 +5,66 @@
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun CircularFillableLoaders(
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
+    waterLevel: MutableState<Int>,
+    value: ImageBitmap?,
+    wavesAmplitude: Float,
 ) {
     Box(
-        modifier = Modifier.size(226.dp),
-        contentAlignment = Alignment.Center
+        modifier = Modifier.size(300.dp), contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier.wrapContentSize().clip(RoundedCornerShape(100)),
             contentAlignment = Alignment.Center
         ) {
             Canvas(
-                modifier = Modifier.size(226.dp)
+                modifier = Modifier.fillMaxSize()
             ) {
                 drawCircle(
                     color = Color.Black,
-                    radius = 100.dp.toPx(),
+                    radius = 120.dp.toPx(),
                 )
                 drawCircle(
-                    brush = SolidColor(Color.LightGray),
-                    radius = 100.dp.toPx(),
-                    style = Stroke(width = 20.dp.toPx())
+                    brush = SolidColor(Color.DarkGray),
+                    radius = 110.dp.toPx(),
+                    style = Stroke(width = 0.dp.toPx())
                 )
             }
-            Image(
-                painter = painterResource("compose-multiplatform.xml"),
-                contentDescription = null,
-                modifier = modifier.size(100.dp).align(Alignment.Center)
-            )
+            value?.let {
+                Image(
+                    bitmap = it,
+                    contentDescription = null,
+                    modifier = modifier.fillMaxSize().align(Alignment.Center),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
-            WavesLoadingIndicator2(modifier = modifier, color = Color.DarkGray, 1f)
+            WavesLoadingIndicator(
+                modifier = modifier,
+                color = Color.Yellow,
+                progress = waterLevel,
+                wavesAmplitude = wavesAmplitude
+            )
         }
     }
 }
