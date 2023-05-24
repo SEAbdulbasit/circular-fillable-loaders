@@ -21,15 +21,21 @@ fun WavesLoadingIndicator(
     modifier: Modifier,
     color: Color,
     progress: MutableState<Int>,
-    wavesAmplitude: Float
+    wavesAmplitude: Float,
+    wavesColor: Color
 ) {
     BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.Center) {
-        AnimatedPathTranslation(color, progress, wavesAmplitude)
+        AnimatedPathTranslation(color, progress, wavesAmplitude, wavesColor)
     }
 }
 
 @Composable
-fun AnimatedPathTranslation(color: Color, progress: MutableState<Int>, wavesAmplitude: Float) {
+fun AnimatedPathTranslation(
+    color: Color,
+    progress: MutableState<Int>,
+    wavesAmplitude: Float,
+    wavesColor: Color
+) {
     val transition = rememberInfiniteTransition()
 
     val waveShiftRatio = transition.animateFloat(
@@ -52,13 +58,13 @@ fun AnimatedPathTranslation(color: Color, progress: MutableState<Int>, wavesAmpl
             wavesAmplitude
         )
         drawPath(
-            color = (color.copy(alpha = 0.5f)),
+            color = (wavesColor.copy(alpha = 0.5f)),
             path = wavePath[0],
         )
 
         translate(0f, 20f) {
             drawPath(
-                color = (color), path = wavePath[1]
+                color = (wavesColor), path = wavePath[1]
             )
         }
     }

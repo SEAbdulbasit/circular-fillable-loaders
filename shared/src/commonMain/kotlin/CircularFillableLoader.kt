@@ -29,6 +29,7 @@ fun CircularFillableLoaders(
     waterLevel: MutableState<Int>,
     value: ImageBitmap?,
     wavesAmplitude: Float,
+    wavesColor: Color,
 ) {
     Box(
         modifier = Modifier.size(300.dp), contentAlignment = Alignment.Center
@@ -61,9 +62,10 @@ fun CircularFillableLoaders(
 
             WavesLoadingIndicator(
                 modifier = modifier,
-                color = Color.Yellow,
+                color = Color(0xFF6e738b),
                 progress = waterLevel,
-                wavesAmplitude = wavesAmplitude
+                wavesAmplitude = wavesAmplitude,
+                wavesColor=wavesColor
             )
         }
     }
