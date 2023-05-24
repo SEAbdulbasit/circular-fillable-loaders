@@ -1,8 +1,4 @@
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,7 +8,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.translate
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -46,7 +41,6 @@ fun AnimatedPathTranslation(
         )
     )
 
-
     Canvas(modifier = Modifier.fillMaxSize()) {
         val canvasWidth = size.width
         val canvasHeight = size.height
@@ -58,15 +52,13 @@ fun AnimatedPathTranslation(
             wavesAmplitude
         )
         drawPath(
-            color = (wavesColor.copy(alpha = 0.5f)),
+            color = (wavesColor.copy(alpha = 0.6f)),
             path = wavePath[0],
         )
 
-        translate(0f, 20f) {
-            drawPath(
-                color = (wavesColor), path = wavePath[1]
-            )
-        }
+        drawPath(
+            color = (wavesColor), path = wavePath[1]
+        )
     }
 }
 
@@ -102,7 +94,7 @@ private fun createPath(
         moveTo(startX, waterLevel)
 
         for (x in 0..width) {
-            val wx = x * angularFrequency + 0.8
+            val wx = x * angularFrequency + 2
             val y = waterLevel + amplitude * sin(wx + waveShiftRatio * 2 * PI).toFloat()
             lineTo(x.toFloat(), y)
         }

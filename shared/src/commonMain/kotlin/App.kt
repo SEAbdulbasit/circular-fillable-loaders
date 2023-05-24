@@ -1,9 +1,5 @@
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Slider
 import androidx.compose.material.SliderDefaults
@@ -24,8 +20,8 @@ import org.jetbrains.compose.resources.resource
 @Composable
 fun App() {
     MaterialTheme {
-        val waterLevel = remember { mutableStateOf(50) }
-        val wavesAmplitude = remember { mutableStateOf<Float>(0.03f) }
+        val waterLevel = remember { mutableStateOf(20) }
+        val wavesAmplitude = remember { mutableStateOf(0.03f) }
         val waveColor = Color(0xFF6e738b)
 
         val image = remember { mutableStateOf<ImageBitmap?>(null) }
@@ -33,7 +29,6 @@ fun App() {
         LaunchedEffect(Unit) {
             image.value = resource("pexels.jpg").readBytes().toImageBitmap()
         }
-
 
         Box(
             modifier = Modifier.fillMaxSize().background(Color(0xFFFFC793)),
@@ -45,8 +40,9 @@ fun App() {
                     waterLevel = waterLevel,
                     value = image.value,
                     wavesAmplitude = wavesAmplitude.value,
-                    wavesColor=waveColor
+                    wavesColor = waveColor
                 )
+                Spacer(modifier = Modifier.height(30.dp))
                 Text(text = "Progress")
                 Slider(
                     modifier = Modifier.widthIn(200.dp, max = 200.dp),
@@ -76,6 +72,5 @@ fun App() {
                 )
             }
         }
-
     }
 }
