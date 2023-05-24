@@ -8,25 +8,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.translate
 import kotlin.math.PI
 import kotlin.math.sin
 
 @Composable
 fun WavesLoadingIndicator(
     modifier: Modifier,
-    color: Color,
     progress: MutableState<Int>,
     wavesAmplitude: Float,
     wavesColor: Color
 ) {
     BoxWithConstraints(modifier = modifier, contentAlignment = Alignment.Center) {
-        AnimatedPathTranslation(color, progress, wavesAmplitude, wavesColor)
+        AnimatedPathTranslation(progress, wavesAmplitude, wavesColor)
     }
 }
 
 @Composable
 fun AnimatedPathTranslation(
-    color: Color,
     progress: MutableState<Int>,
     wavesAmplitude: Float,
     wavesColor: Color
@@ -56,9 +55,11 @@ fun AnimatedPathTranslation(
             path = wavePath[0],
         )
 
-        drawPath(
-            color = (wavesColor), path = wavePath[1]
-        )
+        translate(0f, 0f) {
+            drawPath(
+                color = (wavesColor), path = wavePath[1]
+            )
+        }
     }
 }
 
@@ -94,7 +95,7 @@ private fun createPath(
         moveTo(startX, waterLevel)
 
         for (x in 0..width) {
-            val wx = x * angularFrequency + 2
+            val wx = x * angularFrequency + 1.3
             val y = waterLevel + amplitude * sin(wx + waveShiftRatio * 2 * PI).toFloat()
             lineTo(x.toFloat(), y)
         }

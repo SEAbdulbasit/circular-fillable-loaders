@@ -1,8 +1,9 @@
-rootProject.name = "Circular Fillable Loaders"
+rootProject.name = "CircularFillableLoaders"
 
 include(":androidApp")
 include(":shared")
 include(":desktopApp")
+include(":webApp")
 
 pluginManagement {
     repositories {

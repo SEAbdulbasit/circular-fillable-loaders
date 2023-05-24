@@ -62,10 +62,9 @@ fun CircularFillableLoaders(
 
             WavesLoadingIndicator(
                 modifier = modifier,
-                color = Color(0xFF6e738b),
                 progress = waterLevel,
                 wavesAmplitude = wavesAmplitude,
-                wavesColor=wavesColor
+                wavesColor = wavesColor
             )
         }
     }
