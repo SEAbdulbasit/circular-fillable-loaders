@@ -27,7 +27,7 @@ fun App() {
         val image = remember { mutableStateOf<ImageBitmap?>(null) }
 
         LaunchedEffect(Unit) {
-            image.value = resource("pexels.jpg").readBytes().toImageBitmap()
+          //  image.value = resource("pexels.jpg").readBytes().toImageBitmap()
         }
 
         Box(

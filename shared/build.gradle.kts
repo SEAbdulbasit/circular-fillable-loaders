@@ -8,7 +8,7 @@ plugins {
 kotlin {
     android()
     jvm("desktop")
-    js(IR) {
+    wasm {
         browser()
     }
     iosX64()
@@ -59,13 +59,14 @@ kotlin {
                 implementation(compose.desktop.common)
             }
         }
-        val jsMain by getting {
+        val wasmMain by getting {
             dependsOn(commonMain)
-            dependencies {
-                implementation(compose.html.core)
-            }
         }
     }
+}
+
+compose.experimental {
+    web.application {}
 }
 
 android {
