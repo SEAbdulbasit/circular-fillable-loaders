@@ -4,13 +4,16 @@ plugins {
 }
 
 val copyJsResources = tasks.create("copyJsResourcesWorkaround", Copy::class.java) {
-    dependsOn(":webApp:jsDevelopmentExecutableCompileSync")
     from(project(":shared").file("src/commonMain/resources"))
     into("build/processedResources/js/main")
 }
 
+
 afterEvaluate {
     project.tasks.getByName("jsProcessResources").finalizedBy(copyJsResources)
+    project.tasks.getByName("jsBrowserProductionExecutableDistributeResources").mustRunAfter(copyJsResources)
+    project.tasks.getByName("jsDevelopmentExecutableCompileSync").mustRunAfter(copyJsResources)
+    project.tasks.getByName("jsProductionExecutableCompileSync").mustRunAfter(copyJsResources)
 }
 
 kotlin {
